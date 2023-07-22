@@ -1,0 +1,6 @@
+[ 
+    { 
+    "Action": ["mobiletargeting:SendMessages"], 
+    "Resource": ["*"] 
+    } 
+]

@@ -1,0 +1,64 @@
+#set( $distance = $util.defaultIfNull($ctx.args.m, 10000000) )
+#set( $limit = $util.defaultIfNull($ctx.args.limit, 35))
+#set( $priceLow = $util.defaultIfNull($context.args.priceLow, 0))
+#set( $priceHigh = $util.defaultIfNull($context.args.priceHigh, 9999))
+{  
+  "version": "2017-02-28",  
+  "operation": "GET",  
+  "path": "/cardpoint/doc/_search",  
+  "params": {    
+    "body": {      
+     #if( $context.args.nextToken )"search_after": ["$context.args.nextToken"], #end       
+     "size" : ${limit},      
+     "query": {        
+      "bool" : { 
+      #if($context.args.cuisine)
+      "must" : { "match" : { "cuisine": "$context.args.cuisine" } },
+      #end       
+      "filter" : [
+        #if(!$context.args.skipLocation)
+        {            
+          "geo_distance" : {              
+          "distance" : "${distance}m", 
+          "distance_type": "arc",             
+          "location" : $util.toJson($ctx.args.location) 
+          }          
+        },
+        #end
+        #if($context.args.delivery)
+        {
+          "match": {
+            "delivery": "$context.args.delivery"
+          }
+        },
+        #end
+        
+        {
+          "range": {
+            "price": {
+              "gte": "$priceLow",
+              "lte": "$priceHigh"
+            }
+          }
+        },
+        
+        #if($context.args.diets)
+        {
+          "match": {
+            "diets": "$context.args.diets"
+          }
+        }
+        #end
+      ]        
+      }      
+     },      
+     "sort": [{ 
+       "_geo_distance": {          
+        "location": $util.toJson($ctx.args.location),          
+        "order": "asc",          
+        "unit": "m",          
+        "distance_type": "arc"        
+       } 
+     }]
+   }  
+}}

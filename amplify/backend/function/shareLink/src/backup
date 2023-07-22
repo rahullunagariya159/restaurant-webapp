@@ -1,0 +1,281 @@
+/* Amplify Params - DO NOT EDIT
+	API_CATERGRAM3_GRAPHQLAPIENDPOINTOUTPUT
+	API_CATERGRAM3_GRAPHQLAPIIDOUTPUT
+	AUTH_CATERGRAM3E33E33C6_USERPOOLID
+Amplify Params - DO NOT EDIT */
+
+const AWSAppSyncClient = require('aws-appsync').default;
+const gql = require('graphql-tag');
+global.fetch = require('node-fetch');
+let graphqlClient;
+
+exports.handler = async (event) => {
+    let env;
+    let graphql_auth;
+
+    //for cloud env
+    env = process.env;
+    graphql_auth = {
+        type: "AWS_IAM",
+        credentials: {
+            accessKeyId: env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+            sessionToken: env.AWS_SESSION_TOKEN,
+        }
+    };
+
+    if (!graphqlClient) {
+        graphqlClient = new AWSAppSyncClient({
+            url: env.API_CATERGRAM3_GRAPHQLAPIENDPOINTOUTPUT,
+            region: env.REGION,
+            auth: graphql_auth,
+            disableOffline: true,
+        });
+    }
+
+    // QUERY THE LINK
+    let hash = event.arguments.hash;
+    const inviteRes =  await graphqlClient.query({
+        query: gql(getCardShare),
+        variables: {
+            id: hash
+        }
+    });
+
+    console.log('--->>>>>', inviteRes);
+
+    // Give who sent you a reward
+    
+    // Grab user who sent the request
+    const userA =  await graphqlClient.query({
+      query: gql(getUserProfile),
+      variables: {
+          id: inviteRes.data.getCardShare.sentByUserId
+      }
+    });
+
+    console.log('Found User A', userA);
+    
+    
+    // QUERY Benchmark
+    let benchmark = null;
+    if(userA.data.getUserProfile.appliedBenchmark && 
+      userA.data.getUserProfile.appliedBenchmark.length > 0) {
+      let bid = userA.data.getUserProfile.appliedBenchmark[0];
+      
+      const benchRes =  await graphqlClient.query({
+        query: gql(getBenchmark),
+        variables: {
+          id: bid
+        }
+      });
+
+      console.log('--->>>>getBenchmark>', benchRes.data.getBenchmark);
+      benchmark = benchRes.data.getBenchmark;
+
+    } else {
+      const benchRes =  await graphqlClient.query({
+        query: gql(listBenchmarks, { limit: 100 })
+      });
+  
+      console.log('--->>>>>listBenchmarks', benchRes.data.listBenchmarks.items[0])
+      benchmark = benchRes.data.listBenchmarks.items[0]
+    }
+
+    if(benchmark.file && benchmark.file.__typename) {
+      delete benchmark.file.__typename
+    }
+
+    // check points
+    let aPoints = userA.data.getUserProfile.points ? userA.data.getUserProfile.points + benchmark.pointFactor : benchmark.pointFactor
+    if(aPoints >= 100) {
+      aPoints = aPoints - 100;
+
+      // Assign achievements
+      let achievementsA = await graphqlClient.mutate({
+        mutation: gql(createAchievements),
+        variables: {
+            input: {
+              isClaimed: false,
+              achievementsUserId: userA.data.getUserProfile.id,
+              file: benchmark.file,
+              value: benchmark.rewardValue
+            }
+        }
+      });
+      console.log('achievementsA', achievementsA.data);
+
+    }
+
+    // update user A
+    let updatedA = await graphqlClient.mutate({
+      mutation: gql(updateUserProfile),
+      variables: {
+          input: {
+              id: userA.data.getUserProfile.id,
+              points: aPoints
+          }
+      }
+    });
+    console.log('Updated USER A', updatedA);
+
+    // delete old link
+    let deleted = await graphqlClient.mutate({
+      mutation: gql(deleteCardShare),
+      variables: {
+          input: {
+            id: hash
+          }
+      }
+    });
+    console.log('--->>>>Link Deleted', deleted);
+
+    // Give user Notification
+    let notification = await graphqlClient.mutate({
+      mutation: gql(createNotification),
+      variables: {
+          input: {
+            userId: userA.data.getUserProfile.id, 
+            type: CARD_SHARED
+          }
+      }
+    });
+    console.log('_-_-_-_- notification -_-_-_-_', notification);
+
+    const response = {
+        statusCode: 200,
+        body: JSON.stringify('Hello from Lambda!'),
+        id: `updated`
+    };
+    return response;
+};
+
+
+const getCardShare = /* GraphQL */ `
+  query GetCardShare($id: ID!) {
+    getCardShare(id: $id) {
+      id
+      sentByUserId
+      createdAt
+      updatedAt
+      receivedByUser
+    }
+  }
+`;
+
+const getUserProfile = /* GraphQL */ `
+  query GetUserProfile($id: ID!) {
+    getUserProfile(id: $id) {
+      id
+      email
+      points
+      file {
+        bucket
+        region
+        key
+      }
+      appliedBenchmark
+    }
+  }
+`;
+
+const updateUserProfile = /* GraphQL */ `
+  mutation UpdateUserProfile(
+    $input: UpdateUserProfileInput!
+    $condition: ModelUserProfileConditionInput
+  ) {
+    updateUserProfile(input: $input, condition: $condition) {
+      id
+      uid
+      createdAt
+      updatedAt
+      points
+    }
+  }
+`;
+
+const deleteCardShare = /* GraphQL */ `
+  mutation DeleteCardShare(
+    $input: DeleteCardShareInput!
+    $condition: ModelCardShareConditionInput
+  ) {
+    deleteCardShare(input: $input, condition: $condition) {
+      id
+      sentByUserId
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const listBenchmarks = /* GraphQL */ `
+  query ListBenchmarks(
+    $filter: ModelBenchmarkFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listBenchmarks(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        pointFactor
+        name
+        file {
+          bucket
+          region
+          key
+        }
+        rewardValue
+        title
+        price
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+
+const getBenchmark = /* GraphQL */ `
+  query GetBenchmark($id: ID!) {
+    getBenchmark(id: $id) {
+      id
+      pointFactor
+      name
+      file {
+        bucket
+        region
+        key
+      }
+      rewardValue
+      title
+      price
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const createAchievements = /* GraphQL */ `
+  mutation CreateAchievements(
+    $input: CreateAchievementsInput!
+    $condition: ModelAchievementsConditionInput
+  ) {
+    createAchievements(input: $input, condition: $condition) {
+      id
+    }
+  }
+`;
+
+
+const createNotification = /* GraphQL */ `
+  mutation CreateNotification(
+    $input: CreateNotificationInput!
+    $condition: ModelNotificationConditionInput
+  ) {
+    createNotification(input: $input, condition: $condition) {
+      id
+      type
+      userId
+    }
+  }
+`;

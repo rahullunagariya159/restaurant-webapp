@@ -1,0 +1,675 @@
+{
+    "auth": {
+        "catergram3e33e33c6": {
+            "service": "Cognito",
+            "providerPlugin": "awscloudformation",
+            "dependsOn": [
+                {
+                    "category": "function",
+                    "resourceName": "catergram3e33e33c6PostConfirmation",
+                    "triggerProvider": "Cognito",
+                    "attributes": [
+                        "Arn",
+                        "Name"
+                    ]
+                }
+            ],
+            "frontendAuthConfig": {
+                "socialProviders": [],
+                "usernameAttributes": [
+                    "EMAIL"
+                ],
+                "signupAttributes": [
+                    "EMAIL"
+                ],
+                "passwordProtectionSettings": {
+                    "passwordPolicyMinLength": 8,
+                    "passwordPolicyCharacters": []
+                },
+                "mfaConfiguration": "OFF",
+                "mfaTypes": [
+                    "SMS"
+                ],
+                "verificationMechanisms": [
+                    "EMAIL"
+                ]
+            }
+        },
+        "userPoolGroups": {
+            "service": "Cognito-UserPool-Groups",
+            "providerPlugin": "awscloudformation",
+            "dependsOn": [
+                {
+                    "category": "auth",
+                    "resourceName": "catergram3e33e33c6",
+                    "attributes": [
+                        "UserPoolId",
+                        "AppClientIDWeb",
+                        "AppClientID",
+                        "IdentityPoolId"
+                    ]
+                }
+            ]
+        }
+    },
+    "api": {
+        "catergram3": {
+            "service": "AppSync",
+            "providerPlugin": "awscloudformation",
+            "output": {
+                "authConfig": {
+                    "additionalAuthenticationProviders": [
+                        {
+                            "authenticationType": "API_KEY",
+                            "apiKeyConfig": {
+                                "apiKeyExpirationDays": 365,
+                                "apiKeyExpirationDate": "2023-04-22T03:00:51.369Z",
+                                "description": "For Public Queries"
+                            }
+                        },
+                        {
+                            "authenticationType": "AWS_IAM"
+                        }
+                    ],
+                    "defaultAuthentication": {
+                        "authenticationType": "AMAZON_COGNITO_USER_POOLS",
+                        "userPoolConfig": {
+                            "userPoolId": "authcatergram3e33e33c6"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                {
+                    "category": "auth",
+                    "resourceName": "catergram3e33e33c6",
+                    "attributes": [
+                        "UserPoolId"
+                    ]
+                }
+            ]
+        }
+    },
+    "hosting": {
+        "S3AndCloudFront": {
+            "service": "S3AndCloudFront",
+            "providerPlugin": "awscloudformation"
+        }
+    },
+    "storage": {
+        "shadid": {
+            "service": "S3",
+            "providerPlugin": "awscloudformation",
+            "dependsOn": [
+                {
+                    "category": "auth",
+                    "resourceName": "catergram3e33e33c6",
+                    "attributes": [
+                        "UserPoolId"
+                    ]
+                },
+                {
+                    "category": "auth",
+                    "resourceName": "userPoolGroups",
+                    "attributes": [
+                        "AdminsGroupRole"
+                    ]
+                }
+            ]
+        }
+    },
+    "function": {
+        "friendReqFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "shareLink": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "auth",
+                    "resourceName": "catergram3e33e33c6",
+                    "attributes": [
+                        "UserPoolId"
+                    ]
+                },
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "updateCardFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "shareCardWithMultipleUsersFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                },
+                {
+                    "category": "analytics",
+                    "resourceName": "betaone",
+                    "attributes": [
+                        "Id",
+                        "Region"
+                    ]
+                }
+            ]
+        },
+        "redeemRewardFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "testAutomation": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "auth",
+                    "resourceName": "catergram3e33e33c6",
+                    "attributes": [
+                        "UserPoolId"
+                    ]
+                },
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "sendFriendRequest": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                },
+                {
+                    "category": "analytics",
+                    "resourceName": "betaone",
+                    "attributes": [
+                        "Id",
+                        "Region"
+                    ]
+                }
+            ]
+        },
+        "giveRewardToUsers": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "cardRecommendation": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "nearbyUserResolverFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "cardAverageRating": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "searchCardResolver": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": []
+        },
+        "searchRestaurantsResolver": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "findUsersFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "sendPopularCardInArea": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput"
+                    ]
+                }
+            ]
+        },
+        "postAuthHookFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput"
+                    ]
+                }
+            ]
+        },
+        "sendCardToUsersNearby": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "sendCurrentCardToUsers": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput"
+                    ]
+                }
+            ]
+        },
+        "sendEmail": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "shareMenuWithUsers": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                },
+                {
+                    "category": "analytics",
+                    "resourceName": "betaone",
+                    "attributes": [
+                        "Id",
+                        "Region"
+                    ]
+                }
+            ]
+        },
+        "cardAverageMood": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "dynamoTrigger": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput"
+                    ]
+                }
+            ]
+        },
+        "pushNotificationFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "nearByCardsV2": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput",
+                        "GraphQLAPIKeyOutput"
+                    ]
+                }
+            ]
+        },
+        "imageCompression": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "storage",
+                    "resourceName": "shadid",
+                    "attributes": [
+                        "BucketName"
+                    ]
+                },
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput"
+                    ]
+                }
+            ]
+        },
+        "sendPushNotificationToUsers": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "nearByrestaurantFn": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "triggerOnUserImageUpload": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                },
+                {
+                    "category": "analytics",
+                    "resourceName": "betaone",
+                    "attributes": [
+                        "Id",
+                        "Region"
+                    ]
+                }
+            ]
+        },
+        "triggerZendeskOnRestRegister": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                }
+            ]
+        },
+        "zendeskAgentApproveRestaurant": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "testFunction": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "catergram3e33e33c6PostConfirmation": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "validateRestaurantUrl": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda"
+        },
+        "sendTextToDownloadApp": {
+            "build": true,
+            "providerPlugin": "awscloudformation",
+            "service": "Lambda",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput",
+                        "GraphQLAPIKeyOutput"
+                    ]
+                }
+            ]
+        }
+    },
+    "custom": {
+        "OpenSearchCFAutomation": {
+            "service": "customCloudformation",
+            "providerPlugin": "awscloudformation",
+            "dependsOn": [
+                {
+                    "category": "api",
+                    "resourceName": "catergram3",
+                    "attributes": [
+                        "GraphQLAPIIdOutput",
+                        "GraphQLAPIEndpointOutput"
+                    ]
+                },
+                {
+                    "category": "storage",
+                    "resourceName": "shadid",
+                    "attributes": [
+                        "BucketName",
+                        "Region"
+                    ]
+                },
+                {
+                    "category": "function",
+                    "resourceName": "nearbyUserResolverFn",
+                    "attributes": [
+                        "Name",
+                        "Arn",
+                        "Region",
+                        "LambdaExecutionRole"
+                    ]
+                },
+                {
+                    "category": "function",
+                    "resourceName": "searchCardResolver",
+                    "attributes": [
+                        "Name",
+                        "Arn",
+                        "Region",
+                        "LambdaExecutionRole"
+                    ]
+                },
+                {
+                    "category": "function",
+                    "resourceName": "searchRestaurantsResolver",
+                    "attributes": [
+                        "Name",
+                        "Arn",
+                        "Region",
+                        "LambdaExecutionRole"
+                    ]
+                },
+                {
+                    "category": "function",
+                    "resourceName": "findUsersFn",
+                    "attributes": [
+                        "Name",
+                        "Arn",
+                        "Region",
+                        "LambdaExecutionRole"
+                    ]
+                },
+                {
+                    "category": "function",
+                    "resourceName": "sendPopularCardInArea",
+                    "attributes": [
+                        "Name",
+                        "Arn",
+                        "Region",
+                        "LambdaExecutionRole"
+                    ]
+                },
+                {
+                    "category": "function",
+                    "resourceName": "nearByrestaurantFn",
+                    "attributes": [
+                        "Name",
+                        "Arn",
+                        "Region",
+                        "LambdaExecutionRole"
+                    ]
+                }
+            ]
+        },
+        "UpdateNotificationChannels": {
+            "service": "customCloudformation",
+            "providerPlugin": "awscloudformation",
+            "dependsOn": [
+                {
+                    "category": "analytics",
+                    "resourceName": "betaone",
+                    "attributes": [
+                        "Region",
+                        "Id",
+                        "appName"
+                    ]
+                }
+            ]
+        }
+    },
+    "analytics": {
+        "betaone": {
+            "service": "Pinpoint",
+            "providerPlugin": "awscloudformation"
+        }
+    },
+    "notifications": {
+        "betaone": {
+            "service": "Pinpoint",
+            "channels": []
+        }
+    }
+}

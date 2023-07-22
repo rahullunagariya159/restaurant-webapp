@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "api": {
+      "catergram3": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    "storage": {
+      "UserProfile:@model(appsync)": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ],
+      "FriendshipConnection:@model(appsync)": [
+        "read"
+      ]
+    }
+  },
+  "lambdaLayers": [],
+  "environmentVariableList": [
+    {
+      "cloudFormationParameterName": "apiCatergram3Graphqlapiendpointoutput",
+      "environmentVariableName": "API_CATERGRAM3_GRAPHQLAPIENDPOINTOUTPUT"
+    },
+    {
+      "cloudFormationParameterName": "esEndpoint",
+      "environmentVariableName": "ES_ENDPOINT"
+    }
+  ]
+}

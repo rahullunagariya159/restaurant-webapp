@@ -1,0 +1,809 @@
+type UserInvite @model @searchable {
+  id: ID!
+  phone: String
+  email: String
+  shareId: String
+}
+
+type Content @model 
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read, create, update]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+  {allow: groups, groups: ["Admin"], operations:[read, create, delete, update]}
+])
+{
+  id: ID!
+  privacy: String
+  help: String
+  about: String
+  terms: String
+  friendReqTitle: String
+  friendReqMsg: String
+  shareCardTitle: String
+  shareCardMsg: String
+}
+
+
+type RestaurantUnapproved @model 
+@key(name: "byContact", fields: ["contact"], queryField: "getPendingRestaurantContact")
+{
+  id: ID!
+  name: String!
+  address: String!
+  city: String!
+  zip: String!
+  file: [S3Object]
+  description: String
+  location: Location
+  cuisine: [String]
+  delivery: [String]
+  orderOptionUrls: [OrderUrl]
+  createdAt: String
+  contact: String
+  averagePrice: String
+}
+
+type Restaurant @model 
+@searchable 
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read, create, update]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+  {allow: groups, groups: ["Admin"], operations:[read, create, delete, update]}
+])
+{
+  id: ID!
+  name: String!
+  address: String!
+  city: String!
+  zip: String!
+  file: [S3Object]
+  description: String
+  location: Location
+  lat: Float!
+  lng: Float!
+  # cards: [CardPoint]
+  #   @dd(name: "RestaurantCards", sortField: "createdAt")
+  cuisine: [String]
+  delivery: [String]
+  orderOptionUrls: [OrderUrl]
+  createdAt: String
+  contact: String
+  averagePrice: String
+}
+
+type S3Object {
+  bucket: String!
+  region: String!
+  key: String!
+}
+
+type Contacts {
+  firstname: String
+  lastname: String
+  phoneNumber: String
+  email: String
+}
+
+type Cuisine @model {
+  id: ID!
+  name: String!
+}
+
+type Delivery @model {
+  id: ID!
+  name: String!
+  file: S3Object
+  fontColor: String
+  backgroundColor: String
+}
+
+type Diet @model {
+  id: ID!
+  name: String!
+}
+
+type Notification @model 
+  @auth(rules: [
+    {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]},
+    {allow: private, provider: userPools, operations:[read, create, update, delete]},
+    {allow: private, provider: iam , operations:[read, create, delete, update]},
+  ])
+{
+  id: ID!
+  type: TypeNotification
+  createdAt: String
+  userId: String
+  # belongsTo: UserProfile @dd(name: "UserNotifications")
+}
+
+enum TypeNotification {
+  CARD_SHARED
+  RECEIVED_FRIEND_REQUEST
+  ACCEPTED_FRIEND_REQUEST
+  REWARD_RECIEVED
+}
+
+type UserProfile 
+  @model 
+  @key(name: "byUid", fields: ["uid"], queryField: "userProfileByUid")
+  @key(name: "byEmail", fields: ["email"], queryField: "getUserByEmail")
+  @searchable
+  @auth(rules: [
+    {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+    {allow: private, provider: userPools, operations:[read, create, update]}
+    {allow: private, provider: iam , operations:[read, create, delete, update]},
+  ])
+{
+  id: ID!
+  uid: String!
+  detail: ProfileDetail
+  email: String
+  lat: String
+  lon: String
+  cuisine: [String]
+  delivery: [String]
+  # friends: [FriendsConnection]
+  #   @dd(name: "UserFriends")
+  # userFriendsRef: [FriendsConnection]
+  #   @dd(name: "UserFriendsWithRef")
+  city: String
+  address: String
+  zip: String
+  file: S3Object
+  nickname: String
+  points: Float
+  firstname: String
+  lastname: String
+  appliedBenchmark: [String]
+  # rewards: [RewardModel]
+  #   @dd(name: "UserRewards")
+  # interactions: [UserInteraction]
+  #   @dd(name: "UserLikesConnection")
+  # reactions: [Comment]
+  #   @dd(name: "UserCommentConnection")
+  # textComments: [TextComment]
+  #   @dd(name: "UserTextCommentConnection")
+  # requestsSent: [Friendship]
+  #   @dd(name: "FriendRequestSentConnection")
+  # friendsRequests: [Friendship]
+  #   @cc(name: "RequestConnection")
+  # achievements: [Achievements]
+  #   @dd(name: "AchievementsConnection")
+  # notifications: [Notification]
+  #   @dd(name: "UserNotifications", sortField: "createdAt")
+  newuser: Boolean
+  phoneNumber: String
+  contacts: [Contacts]
+  iosDeviceId: String
+  loc: Location
+  ratings: [Rating] @connection(keyName: "byUser", fields: ["id"])
+  lastLogin: AWSDateTime
+  location: Location
+  restaurantContact: String
+}
+
+
+type FriendsConnection @model 
+@auth(rules: [
+    {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+    {allow: private, provider: userPools, operations:[read, create, update]}
+    {allow: private, provider: iam , operations:[read, create, delete, update]},
+]) 
+{
+  id: ID!
+  friendUserReferenceID: String
+  # belongsTo: UserProfile @dd(name: "UserFriends")
+  # friendsWith:  UserProfile @dd(name: "UserFriendsWithRef")
+}
+
+
+type Friendship @model @searchable
+  @auth(rules: [
+    {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+    {allow: private, provider: userPools, operations:[read]}
+    {allow: private, provider: iam , operations:[read, create, delete, update]},
+  ])
+{
+  id: ID!
+  usera: String!
+  userb: String!
+  status: String!
+  sentByUser: String
+  sentByUserInfo: Friend
+  receivedByUser: String
+  # sentFromUser: UserProfile @dd(name: "FriendRequestSentConnection")
+  # userReference: UserProfile @cc(name: "RequestConnection")
+}
+
+type ProfileDetail {
+  id: String!
+  email: String!
+  nickname: String
+  profilePicture: [S3Object]
+  address: String
+  city: String
+  zip: String
+}
+
+
+type Achievements @model
+  @auth(rules: [
+    {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+    {allow: private, provider: userPools, operations:[read, create, update]}
+    {allow: private, provider: iam , operations:[read, create, delete, update]},
+  ])
+{
+  id: ID!
+  isClaimed: Boolean
+  file: S3Object
+  # user: UserProfile @dd(name: "AchievementsConnection")
+  # reward: CardPoint @dd(name: "CardPointRewardConnection")
+  value: Int
+}
+
+type Benchmark @model
+  @auth(rules: [
+    {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+    {allow: private, provider: userPools, operations:[read, create, update]}
+    {allow: private, provider: iam , operations:[read, create, delete, update]},
+  ])
+{
+  id: ID!
+  pointFactor: Int!
+  name: String!
+  file: S3Object
+  rewardValue: Int
+  title: String
+  price: Float!
+}
+
+type RewardButton @model {
+  id: ID!
+  title: String!
+  fontColor: String!
+  backgroundColor: String!
+  picture: S3Object
+}
+
+type UnapprovedItem @model @searchable
+@key(name: "byRestaurantID", fields: ["restaurantID", "name"], queryField: "getItemsByResturantId")
+{
+  id: ID!
+  name: String!
+  description: String
+  restaurantID: String!
+  cuisine: [String]
+  diets: [String]
+  delivery: [String]
+  isApproved: String
+  picture: [S3Object]
+  price: String
+  orderOptionUrls: [OrderUrl]
+}
+
+type CardPoint @model @searchable 
+@key(name: "byRestaurant", fields: ["restaurantID"], queryField: "getCardsByResturantId")
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read, create, update]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+  {allow: groups, groups: ["Admin"], operations:[read, create, delete, update]}
+])
+{
+  id: ID!
+  name: String!
+  description: String
+  location: Location
+  price: Float!
+  delivery: [String]
+  # restaurant: Restaurant @dd(name: "RestaurantCards")
+  createdAt: String,
+  cardPointFile: [S3Object],
+  city: String
+  zip: String
+  cuisine: [String]
+  # shares: [CardShare]
+  #   @dd(name: "CardShared")
+  # userRewards: [Achievements]
+  #   @dd(name: "CardPointRewardConnection")
+  diets: [String]
+  like: [String]
+  dislike: [String]
+  orderOptionUrls: [OrderUrl]
+  likedBefore: Boolean
+	dislikedBefore: Boolean
+  # userInteractions: [UserInteraction]
+  #   @dd(name: "LikedConnection")
+  # userReaction: [Comment]
+  #   @dd(name: "CommentConnection")
+  # userComment: [TextComment]
+    # @dd(name: "TextCommentConnection")
+  rewardValue: Int
+  rewardUrl: String
+  promoURL: String
+  rewardPrice: String
+  rewardRule: String
+  rewardCode: String
+  rewardButtonTitle: String
+  rewardFontColor: String
+  rewardBgColor: String
+  rewardLimit: Int
+  rewardButtonImage: String
+  rewardTitle: String
+  updatedAt: AWSDateTime
+  ratings: [Rating] @connection(keyName: "byCard", fields: ["id"])
+  totlaCount: Int
+  ratingScore: Float
+  restaurantID: String
+}
+
+type Rating 
+@model 
+@key(name: "byCard", fields: ["CardID", "id"],  queryField: "ratingByCardId")
+@key(name: "byUser", fields: ["UserID", "id"],  queryField: "ratingByUserId")
+{
+  id: ID!
+  CardID: ID
+  UserID: ID
+  score: Float
+}
+
+type Trending @model
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read, create, update]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+  {allow: groups, groups: ["Admin"], operations:[read, create, delete, update]}
+])
+{
+  id: ID!
+  name: String
+  cards:[TrendingCards]
+}
+
+type EmojiModel @model
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read, create, update]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]}
+])
+{
+  id: ID!
+  title: String!
+  cover: S3Object!
+}
+
+type Comment @model 
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+])
+{
+  id: ID!
+  title: String!
+  cover: S3Object!
+  # card: CardPoint @dd(name: "CommentConnection")
+  # user: UserProfile @dd(name: "UserCommentConnection")
+}
+
+type TextComment @model 
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+])
+{
+  id: ID!
+  body: String!
+  # card: CardPoint @dd(name: "TextCommentConnection")
+  # user: UserProfile @dd(name: "UserTextCommentConnection")
+}
+
+type UserInteraction @model 
+@key(name: "interactionByUserReference", fields: ["referenceUserKey"], queryField: "interactionByUserReference")
+@searchable
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read, create, update]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+])
+{
+  id: ID!
+  isLiked: Boolean
+  referenceUserKey: String # Data access for advanced query
+  # card: CardPoint @dd(name: "LikedConnection")
+  # user: UserProfile @dd(name: "UserLikesConnection")
+  owner: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type CardShare @model 
+@searchable
+@auth(rules: [
+  {allow: private, provider: userPools, operations:[read, create, update, delete]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+])
+{
+  id: ID!
+  sentByUserId: String!
+  sentByUserProfilePic: S3Object
+  sentByUserName: String
+  receivedByUser: String!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  # card: CardPoint @dd(name: "CardShared")
+  link: String
+  newUserInvite: Boolean
+  email: String
+  phone: String
+  isInteractedWith: Boolean
+  message: String
+}
+
+type RewardModel @model @searchable 
+@auth(rules: [
+  {allow: owner, ownerField:"owner", provider: userPools, operations:[read, create, delete, update]}
+  {allow: private, provider: userPools, operations:[read, create, update]}
+  {allow: private, provider: iam , operations:[read, create, delete, update]},
+])
+{
+  id: ID!
+  cover: [S3Object]
+  description: String!
+  # userProfile: UserProfile @dd(name: "UserRewards")
+  active: Boolean!
+  value: Int
+}
+
+type Location {   
+  lat: Float!   
+  lon: Float! 
+}
+
+type TrendingCards {
+  cover: S3Object!
+  cardId: String!
+  name: String!
+}
+
+type Query {
+  nearbyCardsOld(
+    location: LocationInput!, 
+    m: Int, 
+    limit: Int, 
+    nextToken: String,
+    delivery: String,
+    cuisine: String,
+    dislike: String,
+    priceLow: Float,
+    priceHigh: Float,
+    diets: String,
+    skipLocation: String,
+    userId: String,
+    frindsRef: [String]
+  ): ModelCardConnection @aws_iam @aws_cognito_user_pools
+
+  nearbyCards(
+    location: LocationInput!, 
+    m: Int, 
+    limit: Int, 
+    nextToken: String,
+    delivery: String,
+    cuisine: String,
+    dislike: String,
+    priceLow: Float,
+    priceHigh: Float,
+    diets: String,
+    skipLocation: String,
+    userId: String
+    restaurants: String
+    payload: String
+  ): ModelCardConnection
+  @aws_iam @aws_cognito_user_pools
+  @function(name: "nearByCardsV2-${env}")
+
+  nearByUsers(
+    location: LocationInput!, 
+    m: Int, 
+    limit: Int, 
+    nextToken: String
+  ): ModelUserProfileConnection
+  @aws_iam @aws_cognito_user_pools
+  @function(name: "nearbyUserResolverFn-${env}")
+
+  getAverageRating(
+    cardId: String
+  ): AverageRatingResponse
+  @function(name: "cardAverageRating-${env}")
+
+  searchCard(
+    name: String!
+    limit: Int
+    nextToken: String
+  ): ModelCardConnection
+  @function(name: "searchCardResolver-${env}")
+
+  searchRestaurantByName(
+    name: String!
+    limit: Int
+    nextToken: String
+  ): ModelRestaurantConnection
+  @function(name: "searchRestaurantsResolver-${env}")
+
+  findUsers(
+    userId: String!
+    name: String!
+    limit: Int
+    nextToken: String
+  ): ModelUserProfileConnection
+  @function(name: "findUsersFn-${env}")
+
+  nearByRestaurants(
+    location: LocationInput!, 
+    m: Int, 
+    limit: Int, 
+    nextToken: String
+  ): ModelRestaurantConnection
+  @function(name: "nearByrestaurantFn-${env}")
+
+  queryUserInLookup(
+    email: String
+    phoneNumber: String
+  ) : TableResponse
+  @function(name: "queryLookUp-${env}")
+}
+
+input EsPost {
+  like: [String]
+  dislike: [String]
+}
+
+type Mutation {
+  friendReqFn(
+    requestId: String!
+    accept: String!
+  ): FriendAccepted
+  @function(name: "friendReqFn-${env}")
+
+  redeemCard(
+    userId: String!
+    hash: String!
+  ): FriendAccepted
+  @aws_iam @aws_cognito_user_pools
+  @function(name: "shareLink-${env}")
+
+  updateCard(
+    userId: String!
+    cardId: String!
+    likeOrDislike: String!
+    esget: Boolean
+    espost: EsPost
+  ): FunctionResponse
+  @function(name: "updateCardFn-${env}")
+
+  shareCardWithMultipleUsers(
+    cardId: String!
+    recievingUsers: [String]
+    sentByUser: String!
+    message: String
+  ): FunctionResponse
+  @function(name: "shareCardWithMultipleUsersFn-${env}")
+
+  redeemReward(
+    userId: String!
+    rewardId: String!
+    location: LocationInput
+  ): FunctionResponse
+  @function(name: "redeemRewardFn-${env}")
+
+  sendFriendRequest(
+    input: SendFriendRequestInput!
+  ): Friendship
+  @function(name: "sendFriendRequest-${env}")
+
+  giveRewardToUsers(
+    userIds: [String]
+    file: S3ObjectInput
+    rewardValue: String
+    title: String
+    content: String
+  ): FunctionResponse
+  @function(name: "giveRewardToUsers-${env}")
+
+  sendCardRecommendation(
+    userIds: [String]
+    title: String
+    content: String
+  ): FunctionResponse
+  @function(name: "cardRecommendation-${env}")
+
+  sendPopularCardNearby(
+    iosDeviceIds: [String]
+    title: String
+    content: String
+    location: LocationInput!, 
+    m: Int, 
+    limit: Int,
+    mostShared: Boolean 
+  ): FunctionResponse
+  @function(name: "sendPopularCardInArea-${env}")
+
+  sendCardUsersNearby(
+    title: String
+    content: String
+    iosDeviceIds: [String]
+    cardName: String
+    restaurantName: String
+    notifications:[Int]
+  ) : FunctionResponse
+  @function(name: "sendCardToUsersNearby-${env}")
+
+  sendEmailToAdmin(
+    cardInformation: String
+  ) : FunctionResponse
+  @function(name: "sendEmail-${env}")
+
+  compressImage(
+    perc: Int
+    keys: [String]
+  ) : FunctionResponse
+  @function(name: "imageCompression-${env}")
+
+  sendPushNotifications(
+    payload: String
+    iosTokens: [String]
+  ) : FunctionResponse
+  @function(name: "sendPushNotificationToUsers-${env}")
+
+}
+
+type Subscription {
+	onCreateCardShareById(receivedByUser: String!): CardShare 
+    @aws_subscribe(mutations: ["createCardShare"]) 
+    @aws_iam 
+    @aws_cognito_user_pools
+  
+  onCreateNotificationByUserId(userId: String): Notification 
+    @aws_subscribe(mutations: ["createNotification"])
+
+  onCreateUserInteractionByUserId(referenceUserKey: String!): UserInteraction
+    @aws_subscribe(mutations: ["createUserInteraction"]) 
+    @aws_iam 
+    @aws_cognito_user_pools
+  
+  onUpdateUserInteractionByUserId(referenceUserKey: String!): UserInteraction 
+    @aws_subscribe(mutations: ["updateUserInteraction"]) 
+    @aws_iam 
+    @aws_cognito_user_pools
+  
+}
+
+input LocationInput {
+  lat: Float!
+  lon: Float!
+}
+
+input SendFriendRequestInput {
+  id: ID
+  usera: String!
+  userb: String!
+  status: String!
+  sentByUser: String
+  sentByUserInfo: FriendInfoInput
+  receivedByUser: String
+  friendshipSentFromUserId: ID
+  friendshipUserReferenceId: ID
+}
+
+input FriendInfoInput {
+  uid: String!
+  email: String!
+  file: S3ObjectInput
+  nickname: String
+  firstname: String
+  lastname: String
+}
+
+input S3ObjectInput {
+  bucket: String!
+  region: String!
+  key: String!
+}
+
+
+type ModelCardConnection @aws_iam @aws_cognito_user_pools {
+ items: [CardPoint]
+ total: Int
+ nextToken: String
+}
+
+type FriendAccepted @aws_iam @aws_cognito_user_pools {
+  id: String!
+}
+
+type FunctionResponse {
+  id: String!
+  errorCode: String
+  errorMsg: String
+}
+
+type TableResponse {
+  firstName: String
+  lastName: String
+  isConfirmed: Boolean
+  email: String
+  phoneNumber: String
+}
+
+type AverageRatingResponse {
+  average: String
+  total: Int
+}
+
+type SyncData {
+  status: String
+  diff: String
+}
+
+type Friend {
+  uid: String!
+  email: String!
+  file: S3Object
+  nickname: String
+  firstname: String
+  lastname: String
+}
+
+type OrderUrl {
+  name: String
+  file: S3Object
+  url: String
+  fontColor: String
+  backgroundColor: String
+}
+
+# Overrides
+
+type ModelCardShareConnection @aws_iam @aws_cognito_user_pools {
+  items: [CardShare]
+  nextToken: String
+  count: Int
+  scannedCount: Int
+}
+
+type ModelCardPointConnection {
+	items: [CardPoint]
+  count: Int
+  scannedCount: Int
+	nextToken: String
+}
+
+type ModelRestaurantConnection {
+  items: [Restaurant]
+  nextToken: String
+  total: Int
+}
+
+type ModelUserInteractionConnection @aws_iam
+@aws_cognito_user_pools {
+	items: [UserInteraction]
+	nextToken: String
+  scannedCount: Int
+}
+
+type ModelFriendsConnectionConnection @aws_iam
+@aws_cognito_user_pools {
+	items: [FriendsConnection]
+	nextToken: String
+  count: Int
+  scannedCount: Int
+}
+
+type ModelUserProfileConnection @aws_iam @aws_cognito_user_pools {
+  items: [UserProfile]
+  nextToken: String
+}

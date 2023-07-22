@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "api": {
+      "catergram3": [
+        "create",
+        "read",
+        "update"
+      ]
+    },
+    "storage": {
+      "Notification:@model(appsync)": [
+        "create",
+        "read",
+        "update"
+      ]
+    },
+    "analytics": {
+      "betaone": [
+        "read",
+        "update"
+      ]
+    }
+  },
+  "lambdaLayers": [],
+  "environmentVariableList": []
+}

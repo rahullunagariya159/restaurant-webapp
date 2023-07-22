@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "storage": {
+      "shadid": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ],
+      "CardPoint:@model(appsync)": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    }
+  },
+  "lambdaLayers": []
+}

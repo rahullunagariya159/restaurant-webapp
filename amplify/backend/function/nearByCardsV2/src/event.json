@@ -1,0 +1,15 @@
+{
+  "arguments":{ 
+      "name": "test",
+      "userId": "BA717A32-33EE-4584-9C84-5AFCD7313C06",
+      "location": {"lat" :"29.95106579999999","lon":"-90.0715323"},
+      "m":100,
+      "delivery":"Uber Eats",
+      "cuisine":"",
+      "priceLow":"10",
+      "priceHigh":"400",
+      "diets":"",
+      "limit":1000,
+      "nextToken":""
+  }
+}

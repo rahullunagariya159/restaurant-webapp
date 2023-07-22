@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "analytics": {
+      "betaone": [
+        "read"
+      ]
+    }
+  },
+  "lambdaLayers": []
+}

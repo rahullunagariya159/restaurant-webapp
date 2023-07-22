@@ -1,0 +1,10 @@
+[
+  {
+    "Action": [ 
+      "events:PutEvents"
+      ], 
+      "Resource": [ 
+      "*" 
+      ]
+  }
+]

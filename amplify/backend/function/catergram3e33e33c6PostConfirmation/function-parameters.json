@@ -1,0 +1,20 @@
+{
+  "trigger": true,
+  "modules": [
+    "add-to-group"
+  ],
+  "parentResource": "catergram3e33e33c6",
+  "functionName": "catergram3e33e33c6PostConfirmation",
+  "resourceName": "catergram3e33e33c6PostConfirmation",
+  "parentStack": "auth",
+  "triggerEnvs": "[]",
+  "triggerDir": "/snapshot/repo/build/node_modules/@aws-amplify/amplify-category-auth/provider-utils/awscloudformation/triggers/PostConfirmation",
+  "triggerTemplate": "PostConfirmation.json.ejs",
+  "triggerEventPath": "PostConfirmation.event.json",
+  "roleName": "catergram3e33e33c6PostConfirmation",
+  "skipEdit": true,
+  "GROUP": "RestaurantOwner",
+  "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+  "s3Key": "amplify-builds/catergram3e33e33c6PostConfirmation-4d322b42514864346d42-build.zip",
+  "enableCors": false
+}

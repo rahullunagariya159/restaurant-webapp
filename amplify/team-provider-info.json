@@ -1,0 +1,166 @@
+{
+  "main": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-betaone-main-154134-authRole",
+      "UnauthRoleArn": "arn:aws:iam::875100320372:role/amplify-betaone-main-154134-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::875100320372:role/amplify-betaone-main-154134-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-betaone-main-154134-deployment",
+      "UnauthRoleName": "amplify-betaone-main-154134-unauthRole",
+      "StackName": "amplify-betaone-main-154134",
+      "StackId": "arn:aws:cloudformation:us-east-1:875100320372:stack/amplify-betaone-main-154134/b2af4a40-996d-11ec-aa7b-0acdf735753d",
+      "AmplifyAppId": "d11dtbgh84vt88"
+    },
+    "categories": {
+      "notifications": {
+        "Pinpoint": {
+          "Name": "betaone-main",
+          "Id": "d4f544e2d9ad456bb83747ba318e72d3",
+          "Region": "us-east-1"
+        }
+      },
+      "auth": {
+        "catergram3e33e33c6": {},
+        "userPoolGroups": {}
+      },
+      "function": {
+        "friendReqFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/friendReqFn-787371517262492f666c-build.zip"
+        },
+        "shareLink": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/shareLink-484e4a46583878547366-build.zip"
+        },
+        "updateCardFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/updateCardFn-7a5363742f2b77464a50-build.zip"
+        },
+        "shareCardWithMultipleUsersFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/shareCardWithMultipleUsersFn-704a4170614366344d59-build.zip"
+        },
+        "redeemRewardFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/redeemRewardFn-515270743747316e4c75-build.zip"
+        },
+        "testAutomation": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/testAutomation-67747848756f476b6f51-build.zip"
+        },
+        "sendFriendRequest": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/sendFriendRequest-36306938786d4e544241-build.zip"
+        },
+        "giveRewardToUsers": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/giveRewardToUsers-78375a55745a55773366-build.zip"
+        },
+        "cardRecommendation": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/cardRecommendation-505752364c7269574b50-build.zip"
+        },
+        "nearbyUserResolverFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/nearbyUserResolverFn-456e6768443835622b67-build.zip"
+        },
+        "cardAverageRating": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/cardAverageRating-6e5243753966504c7643-build.zip"
+        },
+        "searchCardResolver": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/searchCardResolver-627832734650364d4468-build.zip"
+        },
+        "searchRestaurantsResolver": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/searchRestaurantsResolver-554e6d56475832714f41-build.zip"
+        },
+        "findUsersFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/findUsersFn-37514b342b64336a366e-build.zip"
+        },
+        "sendPopularCardInArea": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/sendPopularCardInArea-434f665955666e6d7672-build.zip"
+        },
+        "postAuthHookFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/postAuthHookFn-78687932363864307639-build.zip"
+        },
+        "sendCardToUsersNearby": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/sendCardToUsersNearby-476d4957622f686a2f74-build.zip"
+        },
+        "sendCurrentCardToUsers": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/sendCurrentCardToUsers-5655486c695a4a4b322b-build.zip"
+        },
+        "sendEmail": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/sendEmail-336548527277316c6644-build.zip"
+        },
+        "shareMenuWithUsers": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/shareMenuWithUsers-48686a6f4475565a766f-build.zip"
+        },
+        "cardAverageMood": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/cardAverageMood-464c674e786f3278332b-build.zip"
+        },
+        "dynamoTrigger": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/dynamoTrigger-5a73337a326a43594e74-build.zip"
+        },
+        "pushNotificationFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/pushNotificationFn-42307668634652455730-build.zip"
+        },
+        "nearByCardsV2": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/nearByCardsV2-46445354704f32654837-build.zip"
+        },
+        "imageCompression": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/imageCompression-5144487157302f525835-build.zip"
+        },
+        "sendPushNotificationToUsers": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/sendPushNotificationToUsers-57772b722f4d564f2b37-build.zip"
+        },
+        "nearByrestaurantFn": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/nearByrestaurantFn-4f6b31315967472f6b6b-build.zip"
+        },
+        "triggerOnUserImageUpload": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/triggerOnUserImageUpload-63567a34677349324a59-build.zip"
+        },
+        "triggerZendeskOnRestRegister": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/triggerZendeskOnRestRegister-76306e4f7a7931676153-build.zip"
+        },
+        "zendeskAgentApproveRestaurant": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/zendeskAgentApproveRestaurant-6e2f7448563754537142-build.zip"
+        },
+        "testFunction": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/testFunction-4c745738394d5456676d-build.zip"
+        },
+        "catergram3e33e33c6PostConfirmation": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/catergram3e33e33c6PostConfirmation-2b6156774c5877724d4a-build.zip"
+        },
+        "validateRestaurantUrl": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/validateRestaurantUrl-75317062464b73763232-build.zip"
+        },
+        "sendTextToDownloadApp": {
+          "deploymentBucketName": "amplify-betaone-main-154134-deployment",
+          "s3Key": "amplify-builds/sendTextToDownloadApp-6b4e3033662f31757763-build.zip"
+        }
+      }
+    }
+  }
+}

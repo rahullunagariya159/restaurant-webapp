@@ -1,0 +1,20 @@
+{
+  "lambdaLayers": [],
+  "permissions": {
+    "api": {
+      "catergram3": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    "storage": {
+      "UserInteraction:@model(appsync)": [
+        "create",
+        "read",
+        "update"
+      ]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+    "appName": "betaone",
+    "roleName": "pinpointLambdaRole63dbccbb",
+    "cloudformationPolicyName": "cloudformationPolicy63dbccbb",
+    "cloudWatchPolicyName": "cloudWatchPolicy63dbccbb",
+    "pinpointPolicyName": "pinpointPolicy63dbccbb",
+    "authPolicyName": "pinpoint_amplify_63dbccbb",
+    "unauthPolicyName": "pinpoint_amplify_63dbccbb",
+    "authRoleName": {
+        "Ref": "AuthRoleName"
+    },
+    "unauthRoleName": {
+        "Ref": "UnauthRoleName"
+    },
+    "authRoleArn": {
+        "Fn::GetAtt": [
+            "AuthRole",
+            "Arn"
+        ]
+    }
+}

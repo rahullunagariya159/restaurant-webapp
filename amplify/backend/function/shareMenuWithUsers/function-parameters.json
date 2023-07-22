@@ -1,0 +1,28 @@
+{
+  "lambdaLayers": [],
+  "permissions": {
+    "api": {
+      "catergram3": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    "storage": {
+      "Notification:@model(appsync)": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    },
+    "analytics": {
+      "betaone": [
+        "read",
+        "update"
+      ]
+    }
+  },
+  "environmentVariableList": []
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "groupName": "Admin",
+    "precedence": 1
+  },
+  {
+    "groupName": "RestaurantOwner",
+    "precedence": 2
+  },
+  {
+    "groupName": "CustomerService",
+    "precedence": 3
+  },
+  {
+    "groupName": "Photographer",
+    "precedence": 4
+  },
+  {
+    "groupName": "Admins",
+    "precedence": 5
+  }
+]

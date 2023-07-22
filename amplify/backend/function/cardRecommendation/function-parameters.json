@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "api": {
+      "catergram3": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    }
+  },
+  "lambdaLayers": []
+}

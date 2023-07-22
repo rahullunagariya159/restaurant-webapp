@@ -1,0 +1,1205 @@
+/* Amplify Params - DO NOT EDIT
+	API_CATERGRAM3_GRAPHQLAPIENDPOINTOUTPUT
+	API_CATERGRAM3_GRAPHQLAPIIDOUTPUT
+Amplify Params - DO NOT EDIT */
+
+const AWSAppSyncClient = require('aws-appsync').default;
+const gql = require('graphql-tag');
+global.fetch = require('node-fetch');
+let graphqlClient;
+
+
+const AWS = require('aws-sdk');
+const region = process.env.region;
+const dynamodb = new AWS.DynamoDB({apiVersion: "2012-08-10"});
+
+const applicationId = '9f5f877aecba44fe816370366c5c6a21';
+
+
+let action = 'OPEN_APP';
+let priority = 'normal';
+let ttl = 30;
+let silent = false;
+
+// Create Message
+function  CreateMessageRequest(token, badge, card, sentBy, msg, title, contentMessage) {
+
+  // const title = `${card.name} was shared with you`;
+  const userName = sentBy.firstname + ' ' + sentBy.lastname;
+  const cardname = card.name;
+
+  console.log('card.restaurant.name', card.restaurant.name)
+
+  contentMessage = contentMessage.replace('{{username}}', userName);
+  contentMessage = contentMessage.replace('{{cardname}}', cardname);
+  contentMessage = contentMessage.replace('{{restaurant}}', card.restaurant.name);
+  contentMessage = contentMessage.replace('{{usermessage}}', msg);
+
+  title = title.replace('{{username}}', userName);
+  title = title.replace('{{cardname}}', cardname);
+  title = title.replace('{{restaurant}}', card.restaurant.name);
+
+  console.log('----->>>> Message', contentMessage);
+  console.log('-------->>> TITLE', title);
+  console.log('-------->>> TITLE', `https://d29u6d6o333gsl.cloudfront.net/public/${card.cardPointFile[0].key}`);
+    
+  var action = 'OPEN_APP';
+  
+  var messageRequest = {
+    'Addresses': {
+      [token]: {
+        'ChannelType' : 'APNS'
+      }
+    },
+    'MessageConfiguration': {
+      'APNSMessage': {
+        'Action': action,
+        'Body': contentMessage,
+        'Priority': priority,
+        'SilentPush': silent,
+        'Title': title,
+        'TimeToLive': ttl,
+        'Badge': badge,
+        'MediaUrl': `https://d29u6d6o333gsl.cloudfront.net/public/${card.cardPointFile[0].key}`
+      }
+    }
+  };
+  
+  return messageRequest;
+}
+
+function doPinPoint(pinpoint, params) {
+  return new Promise((resolve, reject) => {
+      pinpoint.sendMessages(params, function(err, data) {
+          if (err) {
+              reject(err);
+          }
+          resolve(data);
+      });
+  });
+}
+
+exports.handler = async (event) => {
+
+    let env;
+    let graphql_auth;
+
+    //for cloud env
+    env = process.env;
+    graphql_auth = {
+        type: "AWS_IAM",
+        credentials: {
+            accessKeyId: env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+            sessionToken: env.AWS_SESSION_TOKEN,
+        }
+    };
+
+    if (!graphqlClient) {
+        graphqlClient = new AWSAppSyncClient({
+            url: env.API_CATERGRAM3_GRAPHQLAPIENDPOINTOUTPUT,
+            region: env.REGION,
+            auth: graphql_auth,
+            disableOffline: true,
+        });
+    }
+
+    // Create the Share Links
+    let sentByUser = event.arguments.sentByUser;
+    let recievingUsers = event.arguments.recievingUsers;
+    let cardId = event.arguments.cardId;
+    let message = event.arguments.message;
+
+    console.log('Card', cardId)
+    console.log('recievingUsers', recievingUsers)
+    console.log('sentByUser', sentByUser)
+
+    // Query Card
+
+    const theCard = await graphqlClient.query({
+      query: gql(getCardPoint),
+      variables: {
+          id: cardId
+      }
+    });
+
+    const cardRsp = theCard.data.getCardPoint;
+    console.log('Card Shared---->>>>', JSON.stringify(cardRsp));
+
+
+
+    // QUERY sentby user info
+    const ownerzz =  await graphqlClient.query({
+        query: gql(getUserProfile),
+        variables: {
+            id: sentByUser
+        }
+    });
+    
+    console.log('Update this card', ownerzz.data.getUserProfile) 
+
+    if(ownerzz.data.getUserProfile.file && ownerzz.data.getUserProfile.file.__typename) {
+        delete ownerzz.data.getUserProfile.file.__typename
+    }
+
+    let promises = [];
+
+    recievingUsers.forEach(user => {
+
+        promises.push(
+            graphqlClient.mutate({
+                mutation: gql(createCardShare),
+                variables: {
+                    input: {
+                        receivedByUser: user,
+                        sentByUserId: sentByUser,
+                        cardShareCardId: cardId,
+                        sentByUserProfilePic: ownerzz.data.getUserProfile.file,
+                        sentByUserName: ownerzz.data.getUserProfile.firstname,
+                        message,
+                    }
+                }
+            })
+        )
+    });
+
+    let ress = await Promise.all(promises);
+    console.log('--->>>>', ress);
+
+    for await (const recievingUserId of recievingUsers) {
+
+      const makeNotifications = await graphqlClient.mutate({
+        mutation: gql(createNotification),
+        variables: {
+          input: {
+            userId: recievingUserId,
+            notificationBelongsToId: recievingUserId,
+            createdAt: new Date(),
+            type: 'CARD_SHARED'
+          }
+        }
+      });
+
+      console.log('New Notification Created --->>>', makeNotifications.data.createNotification.type)
+
+
+      const theResp =  await graphqlClient.query({
+        query: gql(getUserProfile),
+        variables: {
+            id: recievingUserId
+        }
+      });
+
+      console.log('Found Recieving User Token', theResp.data.getUserProfile.iosDeviceId);
+      const token = theResp.data.getUserProfile.iosDeviceId;
+
+      
+      const params = {
+        FilterExpression: 'userId = :userId',
+        ExpressionAttributeValues: {
+            ':userId': {'S': recievingUserId}
+        },
+        TableName: 'Notification-rem4gn5wh5gyzc5a4g6yyblhji-beta'
+      };
+
+      const notificationResult = await dynamodb.scan(params).promise()
+      let badge = notificationResult.Items.length;
+
+      console.log('SHOW US THE BADGE', badge);
+
+
+      const contentRes = await graphqlClient.query({
+        query: gql(listContents),
+      });
+
+      let title = contentRes.data.listContents.items[0].shareCardTitle;
+      let contentMessage = contentRes.data.listContents.items[0].shareCardMsg;
+
+      if(token) {
+        console.log('====>>>> HAS TOKEN', token);
+        // Send the Push Notification
+        const messageRequest = CreateMessageRequest(token, badge, cardRsp, ownerzz.data.getUserProfile, message, title, contentMessage);
+        const pinpoint = new AWS.Pinpoint();
+        
+        const params = {
+            "ApplicationId": applicationId,
+            "MessageRequest": messageRequest
+        };
+        const res = await doPinPoint(pinpoint, params);
+        console.log('----->>>>>', res['MessageResponse'].Result);
+      }
+    }
+
+    const response = {
+        statusCode: 200,
+        body: JSON.stringify('Using the card'),
+        id: 'ok'
+    };
+    return response;
+};
+
+
+const listContents = /* GraphQL */ `
+  query ListContents(
+    $filter: ModelContentFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listContents(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        shareCardTitle
+        shareCardMsg
+      }
+      nextToken
+    }
+  }
+`;
+
+const createCardShare = /* GraphQL */ `
+mutation CreateCardShare(
+  $input: CreateCardShareInput!
+  $condition: ModelCardShareConditionInput
+) {
+  createCardShare(input: $input, condition: $condition) {
+    id
+    sentByUserId
+    message
+    sentByUserProfilePic {
+      bucket
+      region
+      key
+    }
+    sentByUserName
+    receivedByUser
+    createdAt
+    updatedAt
+    link
+    card {
+      id
+      name
+      description
+      location {
+        lat
+        lon
+      }
+      price
+      delivery
+      createdAt
+      cardPointFile {
+        bucket
+        region
+        key
+      }
+      city
+      zip
+      cuisine
+      diets
+      like
+      dislike
+      orderOptionUrls {
+        name
+        file {
+          bucket
+          region
+          key
+        }
+        url
+        fontColor
+        backgroundColor
+      }
+      likedBefore
+      dislikedBefore
+      rewardValue
+      rewardUrl
+      promoURL
+      rewardPrice
+      rewardRule
+      rewardCode
+      rewardButtonTitle
+      rewardFontColor
+      rewardBgColor
+      rewardLimit
+      updatedAt
+      restaurant {
+        id
+        name
+        address
+        city
+        zip
+        file {
+          bucket
+          region
+          key
+        }
+        description
+        lat
+        lng
+        cuisine
+        delivery
+        createdAt
+        contact
+        updatedAt
+        cards {
+          items {
+            id
+            name
+            description
+            price
+            delivery
+            createdAt
+            city
+            zip
+            cuisine
+            diets
+            like
+            dislike
+            likedBefore
+            dislikedBefore
+            rewardValue
+            rewardUrl
+            promoURL
+            rewardPrice
+            rewardRule
+            rewardCode
+            rewardButtonTitle
+            rewardFontColor
+            rewardBgColor
+            rewardLimit
+            updatedAt
+          }
+          count
+          scannedCount
+          nextToken
+        }
+      }
+      userRewards {
+        items {
+          id
+          isClaimed
+          file {
+            bucket
+            region
+            key
+          }
+          value
+          createdAt
+          updatedAt
+          user {
+            id
+            uid
+            email
+            lat
+            lon
+            cuisine
+            delivery
+            city
+            address
+            zip
+            nickname
+            points
+            firstname
+            lastname
+            appliedBenchmark
+            createdAt
+            updatedAt
+          }
+          reward {
+            id
+            name
+            description
+            price
+            delivery
+            createdAt
+            city
+            zip
+            cuisine
+            diets
+            like
+            dislike
+            likedBefore
+            dislikedBefore
+            rewardValue
+            rewardUrl
+            promoURL
+            rewardPrice
+            rewardRule
+            rewardCode
+            rewardButtonTitle
+            rewardFontColor
+            rewardBgColor
+            rewardLimit
+            updatedAt
+          }
+        }
+        nextToken
+      }
+      userReaction {
+        items {
+          id
+          title
+          cover {
+            bucket
+            region
+            key
+          }
+          createdAt
+          updatedAt
+          user {
+            id
+            uid
+            email
+            lat
+            lon
+            cuisine
+            delivery
+            city
+            address
+            zip
+            nickname
+            points
+            firstname
+            lastname
+            appliedBenchmark
+            createdAt
+            updatedAt
+          }
+          card {
+            id
+            name
+            description
+            price
+            delivery
+            createdAt
+            city
+            zip
+            cuisine
+            diets
+            like
+            dislike
+            likedBefore
+            dislikedBefore
+            rewardValue
+            rewardUrl
+            promoURL
+            rewardPrice
+            rewardRule
+            rewardCode
+            rewardButtonTitle
+            rewardFontColor
+            rewardBgColor
+            rewardLimit
+            updatedAt
+          }
+        }
+        nextToken
+      }
+      userInteractions {
+        items {
+          id
+          isLiked
+          referenceUserKey
+          createdAt
+          updatedAt
+          user {
+            id
+            uid
+            email
+            lat
+            lon
+            cuisine
+            delivery
+            city
+            address
+            zip
+            nickname
+            points
+            firstname
+            lastname
+            appliedBenchmark
+            createdAt
+            updatedAt
+          }
+          card {
+            id
+            name
+            description
+            price
+            delivery
+            createdAt
+            city
+            zip
+            cuisine
+            diets
+            like
+            dislike
+            likedBefore
+            dislikedBefore
+            rewardValue
+            rewardUrl
+            promoURL
+            rewardPrice
+            rewardRule
+            rewardCode
+            rewardButtonTitle
+            rewardFontColor
+            rewardBgColor
+            rewardLimit
+            updatedAt
+          }
+        }
+        nextToken
+        scannedCount
+      }
+      shares {
+        items {
+          id
+          sentByUserId
+          sentByUserProfilePic {
+            bucket
+            region
+            key
+          }
+          sentByUserName
+          receivedByUser
+          createdAt
+          updatedAt
+          link
+          card {
+            id
+            name
+            description
+            price
+            delivery
+            createdAt
+            city
+            zip
+            cuisine
+            diets
+            like
+            dislike
+            likedBefore
+            dislikedBefore
+            rewardValue
+            rewardUrl
+            promoURL
+            rewardPrice
+            rewardRule
+            rewardCode
+            rewardButtonTitle
+            rewardFontColor
+            rewardBgColor
+            rewardLimit
+            updatedAt
+          }
+        }
+        nextToken
+        count
+        scannedCount
+      }
+    }
+  }
+}
+`;
+
+const getUserProfile = /* GraphQL */ `
+  query GetUserProfile($id: ID!) {
+    getUserProfile(id: $id) {
+      id
+      email
+      firstname
+      lastname
+      file {
+        bucket
+        region
+        key
+      }
+      iosDeviceId
+      notifications {
+        items {
+          id
+        }
+      }
+    }
+  }
+`;
+
+
+const createNotification = /* GraphQL */ `
+  mutation CreateNotification(
+    $input: CreateNotificationInput!
+    $condition: ModelNotificationConditionInput
+  ) {
+    createNotification(input: $input, condition: $condition) {
+      id
+      type
+      createdAt
+      userId
+      updatedAt
+      belongsTo {
+        id
+        uid
+        detail {
+          id
+          email
+          nickname
+          profilePicture {
+            bucket
+            region
+            key
+          }
+          address
+          city
+          zip
+        }
+        email
+        lat
+        lon
+        cuisine
+        delivery
+        city
+        address
+        zip
+        file {
+          bucket
+          region
+          key
+        }
+        nickname
+        points
+        firstname
+        lastname
+        appliedBenchmark
+        newuser
+        phoneNumber
+        contacts {
+          firstname
+          lastname
+          phoneNumber
+          email
+        }
+        iosDeviceId
+        createdAt
+        updatedAt
+        notifications {
+          items {
+            id
+            type
+            createdAt
+            userId
+            updatedAt
+            belongsTo {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+          }
+          nextToken
+        }
+        friends {
+          items {
+            id
+            friendUserReferenceID
+            createdAt
+            updatedAt
+            belongsTo {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+            friendsWith {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+          }
+          nextToken
+          count
+          scannedCount
+        }
+        userFriendsRef {
+          items {
+            id
+            friendUserReferenceID
+            createdAt
+            updatedAt
+            belongsTo {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+            friendsWith {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+          }
+          nextToken
+          count
+          scannedCount
+        }
+        requestsSent {
+          items {
+            id
+            usera
+            userb
+            status
+            sentByUser
+            sentByUserInfo {
+              uid
+              email
+              nickname
+              firstname
+              lastname
+            }
+            receivedByUser
+            createdAt
+            updatedAt
+            sentFromUser {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+            userReference {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+          }
+          nextToken
+        }
+        friendsRequests {
+          items {
+            id
+            usera
+            userb
+            status
+            sentByUser
+            sentByUserInfo {
+              uid
+              email
+              nickname
+              firstname
+              lastname
+            }
+            receivedByUser
+            createdAt
+            updatedAt
+            sentFromUser {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+            userReference {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+          }
+          nextToken
+        }
+        achievements {
+          items {
+            id
+            isClaimed
+            file {
+              bucket
+              region
+              key
+            }
+            value
+            createdAt
+            updatedAt
+            user {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+            reward {
+              id
+              name
+              description
+              price
+              delivery
+              createdAt
+              city
+              zip
+              cuisine
+              diets
+              like
+              dislike
+              likedBefore
+              dislikedBefore
+              rewardValue
+              rewardUrl
+              promoURL
+              rewardPrice
+              rewardRule
+              rewardCode
+              rewardButtonTitle
+              rewardFontColor
+              rewardBgColor
+              rewardLimit
+              rewardButtonImage
+              rewardTitle
+              updatedAt
+            }
+          }
+          nextToken
+        }
+        reactions {
+          items {
+            id
+            title
+            cover {
+              bucket
+              region
+              key
+            }
+            createdAt
+            updatedAt
+            user {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+            card {
+              id
+              name
+              description
+              price
+              delivery
+              createdAt
+              city
+              zip
+              cuisine
+              diets
+              like
+              dislike
+              likedBefore
+              dislikedBefore
+              rewardValue
+              rewardUrl
+              promoURL
+              rewardPrice
+              rewardRule
+              rewardCode
+              rewardButtonTitle
+              rewardFontColor
+              rewardBgColor
+              rewardLimit
+              rewardButtonImage
+              rewardTitle
+              updatedAt
+            }
+          }
+          nextToken
+        }
+        interactions {
+          items {
+            id
+            isLiked
+            referenceUserKey
+            owner
+            createdAt
+            updatedAt
+            user {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+            card {
+              id
+              name
+              description
+              price
+              delivery
+              createdAt
+              city
+              zip
+              cuisine
+              diets
+              like
+              dislike
+              likedBefore
+              dislikedBefore
+              rewardValue
+              rewardUrl
+              promoURL
+              rewardPrice
+              rewardRule
+              rewardCode
+              rewardButtonTitle
+              rewardFontColor
+              rewardBgColor
+              rewardLimit
+              rewardButtonImage
+              rewardTitle
+              updatedAt
+            }
+          }
+          nextToken
+          scannedCount
+        }
+        rewards {
+          items {
+            id
+            cover {
+              bucket
+              region
+              key
+            }
+            description
+            active
+            value
+            createdAt
+            updatedAt
+            userProfile {
+              id
+              uid
+              email
+              lat
+              lon
+              cuisine
+              delivery
+              city
+              address
+              zip
+              nickname
+              points
+              firstname
+              lastname
+              appliedBenchmark
+              newuser
+              phoneNumber
+              iosDeviceId
+              createdAt
+              updatedAt
+            }
+          }
+          nextToken
+        }
+      }
+    }
+  }
+`;
+
+
+const getCardPoint = /* GraphQL */ `
+  query GetCardPoint($id: ID!) {
+    getCardPoint(id: $id) {
+      id
+      name
+      cardPointFile {
+        key
+      }
+      restaurant {
+        name
+      }
+    }
+  }
+`;

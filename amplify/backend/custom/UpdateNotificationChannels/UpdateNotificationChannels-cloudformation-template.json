@@ -1,0 +1,57 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "env": {
+      "Type": "String"
+    },
+    "analyticsbetaoneRegion": {
+      "Type": "String",
+      "Description": "Input parameter describing Region attribute for analytics/betaone resource"
+    },
+    "analyticsbetaoneId": {
+      "Type": "String",
+      "Description": "Input parameter describing Id attribute for analytics/betaone resource"
+    },
+    "analyticsbetaoneappName": {
+      "Type": "String",
+      "Description": "Input parameter describing appName attribute for analytics/betaone resource"
+    }
+  },
+  "Resources": {
+    "SMSNotificationChannel": {
+      "Type": "AWS::Pinpoint::SMSChannel",
+      "Properties": {
+        "ApplicationId": {
+          "Ref": "analyticsbetaoneId"
+        },
+        "Enabled": "True"
+      }
+    },
+    "FCMNotificationChannel": {
+      "Type": "AWS::Pinpoint::GCMChannel",
+      "Properties": {
+        "ApiKey": "AAAASocrx_c:APA91bEFUGRsC-yshnJly6cClTWY00eq5oLOmlV_NQR0HxHYMXe8fgSZw617F5XxYqVK4PB00-Rq4sp8Ci3Myx_Fvxrc7-AtmOmPNFA1xYIqPPCofFg2He2FJ1ZnFmvqGkrNBeq8MEfW",
+        "ApplicationId": {
+          "Ref": "analyticsbetaoneId"
+        },
+        "Enabled": "True"
+      }
+    },
+    "APNNotificationChannel": {
+      "Type": "AWS::Pinpoint::APNSChannel",
+      "Properties": {
+        "ApplicationId": {
+          "Ref": "analyticsbetaoneId"
+        },
+        "BundleId": "com.fooddiscoveryapp.com.fooddiscoveryapp",
+        "DefaultAuthenticationMethod": "TOKEN",
+        "Enabled": "True",
+        "TeamId": "MNMB94N342",
+        "TokenKey": "MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgW/Zbp4byaWVR2OGcau1WZjYqVVyZzaRakC+XYK7KSWOgCgYIKoZIzj0DAQehRANCAAS0tuctEk5+Bay8u8ACpaq3+TD+9RvLEm7yIVvk+aJE8lKAIaCz1GTcHaLR5LqHL4mYKjVlD05A0WJHIsndzWs+",
+        "TokenKeyId": "KXW3D6KADU"
+      }
+    }
+  },
+  "Outputs": {},
+  "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"Amplify\",\"createdWith\":\"7.6.15\",\"stackType\":\"custom-customCloudformation\",\"metadata\":{}}"
+}

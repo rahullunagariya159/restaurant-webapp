@@ -1,0 +1,16 @@
+#set( $items = [] )
+#foreach( $entry in $context.result.hits.hits )  
+  #if( !$foreach.hasNext )    
+   #set( $nextToken = "$entry.sort.get(0)|$entry.sort.get(1)")
+  #end 
+  #set ($myMap = $entry.get("_source"))
+  
+  #set($isLiked = $myMap.put("likedBefore", "$myMap.like.contains($context.args.userId)" ))
+  #set($isDisliked = $myMap.put("dislikedBefore", "$myMap.dislike.contains($context.args.userId)"))
+  $util.qr($items.add($myMap))
+#end
+$util.toJson({  
+  "items": $items,  
+  "total": $ctx.result.hits.total,  
+  "nextToken": $nextToken
+})

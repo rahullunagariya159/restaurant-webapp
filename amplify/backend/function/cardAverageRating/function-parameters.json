@@ -1,0 +1,17 @@
+{
+  "lambdaLayers": [],
+  "permissions": {
+    "api": {
+      "catergram3": [
+        "read",
+        "update"
+      ]
+    },
+    "storage": {
+      "Rating:@model(appsync)": [
+        "read",
+        "update"
+      ]
+    }
+  }
+}

@@ -1,0 +1,189 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "env": {
+      "Type": "String"
+    },
+    "apicatergram3GraphQLAPIIdOutput": {
+      "Type": "String",
+      "Description": "Input parameter describing GraphQLAPIIdOutput attribute for api/catergram3 resource"
+    },
+    "apicatergram3GraphQLAPIEndpointOutput": {
+      "Type": "String",
+      "Description": "Input parameter describing GraphQLAPIEndpointOutput attribute for api/catergram3 resource"
+    },
+    "storageshadidBucketName": {
+      "Type": "String",
+      "Description": "Input parameter describing BucketName attribute for storage/shadid resource"
+    },
+    "storageshadidRegion": {
+      "Type": "String",
+      "Description": "Input parameter describing Region attribute for storage/shadid resource"
+    },
+    "functionnearbyUserResolverFnName": {
+      "Type": "String",
+      "Description": "Input parameter describing Name attribute for function/nearbyUserResolverFn resource"
+    },
+    "functionnearbyUserResolverFnArn": {
+      "Type": "String",
+      "Description": "Input parameter describing Arn attribute for function/nearbyUserResolverFn resource"
+    },
+    "functionnearbyUserResolverFnRegion": {
+      "Type": "String",
+      "Description": "Input parameter describing Region attribute for function/nearbyUserResolverFn resource"
+    },
+    "functionnearbyUserResolverFnLambdaExecutionRole": {
+      "Type": "String",
+      "Description": "Input parameter describing LambdaExecutionRole attribute for function/nearbyUserResolverFn resource"
+    },
+    "functionsearchCardResolverName": {
+      "Type": "String",
+      "Description": "Input parameter describing Name attribute for function/searchCardResolver resource"
+    },
+    "functionsearchCardResolverArn": {
+      "Type": "String",
+      "Description": "Input parameter describing Arn attribute for function/searchCardResolver resource"
+    },
+    "functionsearchCardResolverRegion": {
+      "Type": "String",
+      "Description": "Input parameter describing Region attribute for function/searchCardResolver resource"
+    },
+    "functionsearchCardResolverLambdaExecutionRole": {
+      "Type": "String",
+      "Description": "Input parameter describing LambdaExecutionRole attribute for function/searchCardResolver resource"
+    },
+    "functionsearchRestaurantsResolverName": {
+      "Type": "String",
+      "Description": "Input parameter describing Name attribute for function/searchRestaurantsResolver resource"
+    },
+    "functionsearchRestaurantsResolverArn": {
+      "Type": "String",
+      "Description": "Input parameter describing Arn attribute for function/searchRestaurantsResolver resource"
+    },
+    "functionsearchRestaurantsResolverRegion": {
+      "Type": "String",
+      "Description": "Input parameter describing Region attribute for function/searchRestaurantsResolver resource"
+    },
+    "functionsearchRestaurantsResolverLambdaExecutionRole": {
+      "Type": "String",
+      "Description": "Input parameter describing LambdaExecutionRole attribute for function/searchRestaurantsResolver resource"
+    },
+    "functionfindUsersFnName": {
+      "Type": "String",
+      "Description": "Input parameter describing Name attribute for function/findUsersFn resource"
+    },
+    "functionfindUsersFnArn": {
+      "Type": "String",
+      "Description": "Input parameter describing Arn attribute for function/findUsersFn resource"
+    },
+    "functionfindUsersFnRegion": {
+      "Type": "String",
+      "Description": "Input parameter describing Region attribute for function/findUsersFn resource"
+    },
+    "functionfindUsersFnLambdaExecutionRole": {
+      "Type": "String",
+      "Description": "Input parameter describing LambdaExecutionRole attribute for function/findUsersFn resource"
+    },
+    "functionsendPopularCardInAreaName": {
+      "Type": "String",
+      "Description": "Input parameter describing Name attribute for function/sendPopularCardInArea resource"
+    },
+    "functionsendPopularCardInAreaArn": {
+      "Type": "String",
+      "Description": "Input parameter describing Arn attribute for function/sendPopularCardInArea resource"
+    },
+    "functionsendPopularCardInAreaRegion": {
+      "Type": "String",
+      "Description": "Input parameter describing Region attribute for function/sendPopularCardInArea resource"
+    },
+    "functionsendPopularCardInAreaLambdaExecutionRole": {
+      "Type": "String",
+      "Description": "Input parameter describing LambdaExecutionRole attribute for function/sendPopularCardInArea resource"
+    },
+    "functionnearByrestaurantFnName": {
+      "Type": "String",
+      "Description": "Input parameter describing Name attribute for function/nearByrestaurantFn resource"
+    },
+    "functionnearByrestaurantFnArn": {
+      "Type": "String",
+      "Description": "Input parameter describing Arn attribute for function/nearByrestaurantFn resource"
+    },
+    "functionnearByrestaurantFnRegion": {
+      "Type": "String",
+      "Description": "Input parameter describing Region attribute for function/nearByrestaurantFn resource"
+    },
+    "functionnearByrestaurantFnLambdaExecutionRole": {
+      "Type": "String",
+      "Description": "Input parameter describing LambdaExecutionRole attribute for function/nearByrestaurantFn resource"
+    }
+  },
+  "Resources": {
+    "CloudFrontImages": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Origins": [
+            {
+              "DomainName": {
+                "Fn::Join": [
+                  ".",
+                  [
+                    {
+                      "Ref": "storageshadidBucketName"
+                    },
+                    "s3",
+                    {
+                      "Ref": "storageshadidRegion"
+                    },
+                    "amazonaws.com"
+                  ]
+                ]
+              },
+              "Id": "imageS3Origin",
+              "S3OriginConfig": {
+                "OriginAccessIdentity": "origin-access-identity/cloudfront/E22EE1FZV12SLF"
+              }
+            }
+          ],
+          "Enabled": "true",
+          "DefaultCacheBehavior": {
+            "AllowedMethods": [
+              "DELETE",
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PATCH",
+              "POST",
+              "PUT"
+            ],
+            "TargetOriginId": "imageS3Origin",
+            "ForwardedValues": {
+              "QueryString": "false",
+              "Cookies": {
+                "Forward": "none"
+              }
+            },
+            "ViewerProtocolPolicy": "allow-all"
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "CloudFrontUserBucketEndpoint": {
+      "Value": {
+        "Fn::GetAtt": [
+          "CloudFrontImages",
+          "DomainName"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${env}-cloudfront-user-bucket-endpoint"
+        }
+      },
+      "Description": "CloudFront URL for user bucket"
+    }
+  },
+  "Description": "{\"createdOn\":\"Mac\",\"createdBy\":\"Amplify\",\"createdWith\":\"7.6.15\",\"stackType\":\"custom-customCloudformation\",\"metadata\":{}}"
+}
